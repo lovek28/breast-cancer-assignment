@@ -13,12 +13,11 @@ from sklearn.metrics import accuracy_score, classification_report
 # Load the dataset
 df = pd.read_csv('breast_cancer_dataset.csv')
 
-# Check for missing values
 # Drop unnamed columns
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 print(df.head())
 
-# Encode the target column
+# Encode the target column 'diagnosis': B (Benign) -> 0, M (Malignant) -> 1
 df['diagnosis'] = df['diagnosis'].map({'B': 0, 'M': 1})
 
 # Separate features and target
@@ -28,7 +27,7 @@ y = df['diagnosis']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 
-# Select the top 10 features
+# Feature selection: Select the top 10 features based on statistical significance
 selector = SelectKBest(score_func=f_classif, k=10)
 X_train_selected = selector.fit_transform(X_train, y_train)
 X_test_selected = selector.transform(X_test)
@@ -38,7 +37,7 @@ selected_features = X.columns[selector.get_support()]
 print("Selected features:", selected_features)
 
 
-# Define the parameter grid
+# Define the parameter grid for hyperparameter tuning
 param_grid = {
     'hidden_layer_sizes': [(50,), (100,), (50, 50)],
     'activation': ['relu', 'tanh'],
@@ -50,7 +49,7 @@ param_grid = {
 # Initialize the MLPClassifier
 mlp = MLPClassifier(max_iter=1000, random_state=42)
 
-# Set up the GridSearchCV
+# Set up GridSearchCV to find the best hyperparameters
 grid_search = GridSearchCV(estimator=mlp, param_grid=param_grid, cv=5, n_jobs=-1, scoring='accuracy')
 
 # Fit the model
@@ -70,8 +69,6 @@ y_pred = best_mlp.predict(X_test_selected)
 accuracy = accuracy_score(y_test, y_pred)
 print("Test set accuracy: {:.2f}".format(accuracy))
 print(classification_report(y_test, y_pred))
-
-
 
 
 # Scale features
